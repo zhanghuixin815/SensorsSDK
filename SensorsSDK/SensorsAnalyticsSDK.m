@@ -23,6 +23,7 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 -(instancetype)init{
     if (self = [super init]) {
         _automaticProperties = [self collectAutomaticProperties];
+        [self setupListeners];
     }
     return  self;
 }
@@ -79,6 +80,42 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
     NSString *json = [[NSString alloc]initWithData:data encoding:NSUTF8StringEncoding];
     NSLog(@"[event]:%@",json);
 #endif
+}
+
+#pragma mark Application Lifecycle
+-(void)setupListeners{
+    
+    NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
+    //注册监听UIApplicationDidEnterBackgroundNotification 本地通知，当app进入后台调用
+    [center addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
+    //注册监听UIApplicationDidBecomeActiveNotification 本地通知，当app处于活动状态调用
+    [center addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
+    //注册监听UIApplicationDidFinishLaunchingNotification 本地通知，当冷启动调用
+    [center addObserver:self selector:@selector(applicationDidFinishLaunching:) name:UIApplicationDidFinishLaunchingNotification object:nil];
+    
+}
+
+-(void)applicationDidEnterBackground:(NSNotification*)notification{
+    NSLog(@"Application Did Enter Background!");
+    //触发 $AppEnd 事件
+    [self track:@"$AppEnd" properties:nil];
+}
+
+-(void)applicationDidBecomeActive:(NSNotification*)notification{
+    NSLog(@"Application Did Become Active!");
+    //触发 $AppActive 事件
+    [self track:@"$AppActive" properties:nil];
+}
+
+-(void)applicationDidFinishLaunching:(NSNotification*)notification{
+    NSLog(@"Application Did Finish Launching!");
+    //触发 $AppStart 事件
+    [self track:@"$AppStart" properties:nil];
+}
+
+- (void)dealloc
+{
+    [[NSNotificationCenter defaultCenter]removeObserver:self];
 }
 
 @end
