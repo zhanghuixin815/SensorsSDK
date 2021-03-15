@@ -14,7 +14,11 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 
 @interface SensorsAnalyticsSDK()
 
-@property(nonatomic,copy)NSDictionary<NSString *,id> *automaticProperties;
+@property(nonatomic, copy)NSDictionary<NSString *,id> *automaticProperties;
+//标记程序是否已经收到 UIApplicationWillResignActiveNotification 通知
+@property(nonatomic)BOOL applicationWillResignActive;
+//是否为被动启动
+@property(nonatomic, getter=_isLaunchedPassively) BOOL launchedPassively;
 
 @end
 
@@ -23,6 +27,9 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 -(instancetype)init{
     if (self = [super init]) {
         _automaticProperties = [self collectAutomaticProperties];
+        
+        //设置是否被动启动标记
+        _launchedPassively = UIApplication.sharedApplication.backgroundTimeRemaining != UIApplicationBackgroundFetchIntervalNever;
         [self setupListeners];
     }
     return  self;
@@ -86,17 +93,20 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 -(void)setupListeners{
     
     NSNotificationCenter *center = [NSNotificationCenter defaultCenter];
-    //注册监听UIApplicationDidEnterBackgroundNotification 本地通知，当app进入后台调用
+    //注册监听UIApplicationDidEnterBackgroundNotification本地通知
     [center addObserver:self selector:@selector(applicationDidEnterBackground:) name:UIApplicationDidEnterBackgroundNotification object:nil];
-    //注册监听UIApplicationDidBecomeActiveNotification 本地通知，当app处于活动状态调用
+    //注册监听UIApplicationDidBecomeActiveNotification本地通知
     [center addObserver:self selector:@selector(applicationDidBecomeActive:) name:UIApplicationDidBecomeActiveNotification object:nil];
-    //注册监听UIApplicationDidFinishLaunchingNotification 本地通知，当冷启动调用
+    //注册监听UIApplicationDidFinishLaunchingNotification本地通知
     [center addObserver:self selector:@selector(applicationDidFinishLaunching:) name:UIApplicationDidFinishLaunchingNotification object:nil];
+    //注册监听UIApplicationWillResignActiveNotification本地通知
+    [center addObserver:self selector:@selector(applicationWillResignActive:) name:UIApplicationWillResignActiveNotification object:nil];
     
 }
 
 -(void)applicationDidEnterBackground:(NSNotification*)notification{
     NSLog(@"Application Did Enter Background!");
+    self.applicationWillResignActive = NO;
     //触发 $AppEnd 事件
     [self track:@"$AppEnd" properties:nil];
 }
@@ -104,13 +114,26 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 -(void)applicationDidBecomeActive:(NSNotification*)notification{
     NSLog(@"Application Did Become Active!");
     //触发 $AppActive 事件
-    [self track:@"$AppActive" properties:nil];
+    if (self.applicationWillResignActive) {
+        self.applicationWillResignActive = NO;
+        return;
+    }
+    self.launchedPassively = NO;
+    [self track:@"$AppStart" properties:nil];
+}
+
+-(void)applicationWillResignActive:(NSNotification*)notification{
+    NSLog(@"Application Will Resign Active!");
+    //触发 $AppActive 事件
+    self.applicationWillResignActive = YES;
 }
 
 -(void)applicationDidFinishLaunching:(NSNotification*)notification{
     NSLog(@"Application Did Finish Launching!");
-    //触发 $AppStart 事件
-    [self track:@"$AppStart" properties:nil];
+    if (self._isLaunchedPassively) {
+        //触发 $AppStartPassively 事件
+        [self track:@"$AppStartPassively" properties:nil];
+    }
 }
 
 - (void)dealloc
@@ -126,13 +149,17 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
     NSMutableDictionary *event = [NSMutableDictionary dictionary];
     //设置事件名称
     event[@"event"] = eventName;
-    //设置事件戳 单位：秒
+    //设置事件戳 单位：豪秒
     event[@"time"] = [NSNumber numberWithLong:NSDate.date.timeIntervalSince1970 *1000];
     NSMutableDictionary *eventProperties = [NSMutableDictionary dictionary];
     //添加预置属性
     [eventProperties addEntriesFromDictionary:self.automaticProperties];
     //添加自定义属性
     [eventProperties addEntriesFromDictionary:properties];
+    //被动启动设置状态
+    if (self._isLaunchedPassively) {
+        eventProperties[@"app_state"] = @"background";
+    }
     event[@"properties"] = eventProperties;
     [self printEvent:event];
 }
