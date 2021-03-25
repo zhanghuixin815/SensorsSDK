@@ -113,18 +113,19 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 
 -(void)applicationDidBecomeActive:(NSNotification*)notification{
     NSLog(@"Application Did Become Active!");
-    //触发 $AppActive 事件
+    //如果已经收到过UIApplicationWillResignActiveNotification本地通知，就清除这个标记位，并且不会触发$AppActive 事件
     if (self.applicationWillResignActive) {
         self.applicationWillResignActive = NO;
         return;
     }
     self.launchedPassively = NO;
+    //触发 $AppActive 事件
     [self track:@"$AppStart" properties:nil];
 }
 
 -(void)applicationWillResignActive:(NSNotification*)notification{
     NSLog(@"Application Will Resign Active!");
-    //触发 $AppActive 事件
+    //标记已经收到UIApplicationWillResignActiveNotification本地通知
     self.applicationWillResignActive = YES;
 }
 
