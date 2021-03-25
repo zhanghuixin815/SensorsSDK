@@ -22,9 +22,22 @@
     customTitleVIew.text = @"标题3";
     customTitleVIew.font = [UIFont systemFontOfSize:18];
     customTitleVIew.textColor = [UIColor blackColor];
-    //设置位置在中心
     customTitleVIew.textAlignment = NSTextAlignmentCenter;
     self.navigationItem.titleView = customTitleVIew;
+    
+    //测试控件点击事件埋点
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
+    button.backgroundColor = [UIColor redColor];
+    button.frame = CGRectMake(20, 20, 100, 50);
+    [button setTitle:@"点击" forState:UIControlStateNormal];
+    [button addTarget:self action:@selector(butClick:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:button];
+    button.center = self.view.center;
+    
+}
+
+-(void)butClick:(id)sender{
+    NSLog(@"我被修改了");
 }
 
 

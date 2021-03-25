@@ -28,7 +28,7 @@ static NSString * const kSensorsDataBliackListFileName = @"sensorsdata_black_lis
         if (title .length == 0) {
             title = self.navigationItem.title;
         }
-        [properties setValue:self.navigationItem.title forKey:@"$title"];
+        [properties setValue:title forKey:@"$title"];
         [[SensorsAnalyticsSDK sharedInstance]track:@"$AppViewScreen" properties:properties];
     }
 }

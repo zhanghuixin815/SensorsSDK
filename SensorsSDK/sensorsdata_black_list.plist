@@ -3,5 +3,7 @@
 <plist version="1.0">
 <array>
 	<string>UIInputWindowController</string>
+	<string>UINavigationController</string>
+	<string>UIAlertController</string>
 </array>
 </plist>
