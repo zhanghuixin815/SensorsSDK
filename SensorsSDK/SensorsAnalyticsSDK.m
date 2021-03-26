@@ -9,6 +9,7 @@
 #include <sys/sysctl.h>
 #import<Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import "UIView+SensorsData.h"
 
 static NSString * const SensorsAnalyticsVersion = @"1.0.0";
 
@@ -32,7 +33,7 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
         _launchedPassively = UIApplication.sharedApplication.backgroundTimeRemaining != UIApplicationBackgroundFetchIntervalNever;
         [self setupListeners];
     }
-    return  self;
+    return self;
 }
 
 +(SensorsAnalyticsSDK *)sharedInstance{
@@ -163,6 +164,21 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
     }
     event[@"properties"] = eventProperties;
     [self printEvent:event];
+}
+
+-(void)trackAppClickWithView:(UIView *)view properties:(nullable NSDictionary<NSString *,id>*)properties{
+    
+    NSMutableDictionary *eventProperties = [NSMutableDictionary dictionary];
+    //获取控件类型
+    eventProperties[@"$element_type"] = view.sensorsdata_elementType;
+    //获取控件显示文本
+    eventProperties[@"$element_content"] = view.sensorsdata_elementContent;
+    //获取控件所在控制器
+    eventProperties[@"$screen_name"] = NSStringFromClass([view.sensorsdata_viewController class]);
+    //添加自定义属性
+    [eventProperties addEntriesFromDictionary:properties];
+    //触发$AppClick事件
+    [[SensorsAnalyticsSDK sharedInstance] track:@"$AppClick" properties:eventProperties];
 }
 
 @end

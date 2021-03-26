@@ -6,6 +6,7 @@
 //
 
 #import <Foundation/Foundation.h>
+#import <UIKit/UIKit.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -32,6 +33,13 @@ NS_ASSUME_NONNULL_BEGIN
  @param properties 事件属性
  */
 -(void)track:(NSString *)eventName properties:(nullable NSDictionary<NSString *,id>*)properties;
+
+/**
+ 触发AppClick事件
+ @param view 事件名称
+ @param properties 自定义事件属性
+ */
+-(void)trackAppClickWithView:(UIView *)view properties:(nullable NSDictionary<NSString *,id>*)properties;
 @end
 
 NS_ASSUME_NONNULL_END
