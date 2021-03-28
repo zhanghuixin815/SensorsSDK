@@ -181,4 +181,18 @@ static NSString * const SensorsAnalyticsVersion = @"1.0.0";
     [[SensorsAnalyticsSDK sharedInstance] track:@"$AppClick" properties:eventProperties];
 }
 
+-(void)trackAppClickWithTableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath properties:(nullable NSDictionary<NSString *,id>*)properties{
+    
+    NSMutableDictionary *eventProperties = [NSMutableDictionary dictionary];
+    
+    //TODO: 获取用户点击的UITableViewCell对象
+    //TODO: 设置被用户点击的UITableViewCell控件上的内容($element_content)
+    //TODO:设置被用户点击的UITableViewCell控件所在的位置($element_position)
+    
+    //添加自定义属性
+    [eventProperties addEntriesFromDictionary:properties];
+    //触发AppClick事件
+    [[SensorsAnalyticsSDK sharedInstance]trackAppClickWithView:tableView properties:eventProperties];
+}
+
 @end

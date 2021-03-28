@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		7641000F26104EBF009D4DA1 /* UITableView+SensorsData.h in Headers */ = {isa = PBXBuildFile; fileRef = 7641000D26104EBF009D4DA1 /* UITableView+SensorsData.h */; };
+		7641001026104EBF009D4DA1 /* UITableView+SensorsData.m in Sources */ = {isa = PBXBuildFile; fileRef = 7641000E26104EBF009D4DA1 /* UITableView+SensorsData.m */; };
 		76643C7225F8FC2200D858E4 /* SensorsSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 76643C6825F8FC2200D858E4 /* SensorsSDK.framework */; };
 		76643C7725F8FC2200D858E4 /* SensorsSDKTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 76643C7625F8FC2200D858E4 /* SensorsSDKTests.m */; };
 		76643C7925F8FC2200D858E4 /* SensorsSDK.h in Headers */ = {isa = PBXBuildFile; fileRef = 76643C6B25F8FC2200D858E4 /* SensorsSDK.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -34,6 +36,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		7641000D26104EBF009D4DA1 /* UITableView+SensorsData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UITableView+SensorsData.h"; sourceTree = "<group>"; };
+		7641000E26104EBF009D4DA1 /* UITableView+SensorsData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UITableView+SensorsData.m"; sourceTree = "<group>"; };
 		76643C6825F8FC2200D858E4 /* SensorsSDK.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = SensorsSDK.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		76643C6B25F8FC2200D858E4 /* SensorsSDK.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SensorsSDK.h; sourceTree = "<group>"; };
 		76643C6C25F8FC2200D858E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -104,6 +108,8 @@
 				8FFA3C6C260C81D6007920D7 /* UIApplication+SensorsData.m */,
 				8FFA3C71260C8963007920D7 /* UIView+SensorsData.h */,
 				8FFA3C72260C8963007920D7 /* UIView+SensorsData.m */,
+				7641000D26104EBF009D4DA1 /* UITableView+SensorsData.h */,
+				7641000E26104EBF009D4DA1 /* UITableView+SensorsData.m */,
 				8F187F8F260B43EC00D6DDB9 /* sensorsdata_black_list.plist */,
 				76643C6C25F8FC2200D858E4 /* Info.plist */,
 			);
@@ -127,6 +133,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8F187F83260B3BD000D6DDB9 /* NSObject+SASwizzler.h in Headers */,
+				7641000F26104EBF009D4DA1 /* UITableView+SensorsData.h in Headers */,
 				76643C7925F8FC2200D858E4 /* SensorsSDK.h in Headers */,
 				76643CD125F8FDCE00D858E4 /* SensorsAnalyticsSDK.h in Headers */,
 				8FFA3C73260C8963007920D7 /* UIView+SensorsData.h in Headers */,
@@ -235,6 +242,7 @@
 				8F187F8C260B404600D6DDB9 /* UIViewController+SensorsData.m in Sources */,
 				76643CD225F8FDCE00D858E4 /* SensorsAnalyticsSDK.m in Sources */,
 				8FFA3C6E260C81D6007920D7 /* UIApplication+SensorsData.m in Sources */,
+				7641001026104EBF009D4DA1 /* UITableView+SensorsData.m in Sources */,
 				8F187F84260B3BD000D6DDB9 /* NSObject+SASwizzler.m in Sources */,
 				8FFA3C74260C8963007920D7 /* UIView+SensorsData.m in Sources */,
 			);

@@ -40,6 +40,13 @@ NS_ASSUME_NONNULL_BEGIN
  @param properties 自定义事件属性
  */
 -(void)trackAppClickWithView:(UIView *)view properties:(nullable NSDictionary<NSString *,id>*)properties;
-@end
 
+/**
+ 支持UITableView触发AppClick事件
+ @param tableView 触发事件的UITableView视图
+ @param indexPath 在UITableView中点击的位置
+ @param properties 自定义事件属性
+ */
+-(void)trackAppClickWithTableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath properties:(nullable NSDictionary<NSString *,id>*)properties;
+@end
 NS_ASSUME_NONNULL_END

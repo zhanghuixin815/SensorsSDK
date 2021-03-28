@@ -25,7 +25,7 @@ static NSString * const kSensorsDataBliackListFileName = @"sensorsdata_black_lis
         [properties setValue:NSStringFromClass([self class]) forKey:@"$screen_name"];
         //navigationItem.titleView的优先级高于navigationItem.title，先获取navigationItem.titleView
         NSString *title = [self contentFromView:self.navigationItem.titleView];
-        if (title .length == 0) {
+        if (title.length == 0) {
             title = self.navigationItem.title;
         }
         [properties setValue:title forKey:@"$title"];

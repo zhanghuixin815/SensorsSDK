@@ -7,7 +7,10 @@
 
 #import "ViewController.h"
 
-@interface ViewController ()
+@interface ViewController ()<UITableViewDelegate,UITableViewDataSource>
+
+@property(nonatomic,strong)UITableView *tableView;
+@property(nonatomic,copy)NSArray *dataSource;
 
 @end
 
@@ -72,9 +75,43 @@
 //    [stepper setContinuous:YES];
 //    [self.view addSubview:stepper];
 //    stepper.center = self.view.center;
-   
-
+    
+    //测试UITableView埋点
+    self.tableView = [[UITableView alloc]initWithFrame:self.view.frame style:UITableViewStylePlain];
+    self.tableView.delegate = self;//遵循协议
+    self.tableView.dataSource = self;//遵循数据源
+    self.dataSource = @[@"1",@"2",@"3",@"4",@"5",@"6",@"7",@"8"];
+    [self.view addSubview:self.tableView];
 }
+
+#pragma mark - UITableViewDelegate,UITableViewDataSource
+//分区，组数
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView{
+    return 1;
+}
+//每个分区的行数
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section{
+    return self.dataSource.count;
+}
+//表格行高
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath{
+    return 44;
+}
+//每个单元格的内容
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath{
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:@"cellID"];
+    //系统单元格
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc]initWithStyle:UITableViewCellStyleValue1 reuseIdentifier:@"cellID"];
+    }
+    cell.textLabel.text = self.dataSource[indexPath.row];
+    return cell;
+}
+
+- (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+    NSLog(@"点击了第 %ld 行",(long)indexPath.row + 1);
+}
+
 
 -(void)valueChanged:(UISwitch*)mySwitch{
  
