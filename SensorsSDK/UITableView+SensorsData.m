@@ -43,9 +43,6 @@
         //调用原始方法，将代理设置为nil
         [self sensorsdata_setDelegate:nil];
     }
-    
-   
-    
 }
 
 static void sensorsdata_tableViewDidSelectRow(id object,SEL selector,UITableView *tableView,NSIndexPath *indexPath){

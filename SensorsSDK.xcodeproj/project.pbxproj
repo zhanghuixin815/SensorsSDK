@@ -20,6 +20,8 @@
 		76C047FA261874080045429B /* SensorsAnalyticsDelegateProxy.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C047F8261874080045429B /* SensorsAnalyticsDelegateProxy.m */; };
 		76C047FF26187DB70045429B /* UIScrollView+SensorsData.h in Headers */ = {isa = PBXBuildFile; fileRef = 76C047FD26187DB70045429B /* UIScrollView+SensorsData.h */; };
 		76C0480026187DB70045429B /* UIScrollView+SensorsData.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C047FE26187DB70045429B /* UIScrollView+SensorsData.m */; };
+		76C04805261889E30045429B /* UICollectionView+SensorsData.h in Headers */ = {isa = PBXBuildFile; fileRef = 76C04803261889E30045429B /* UICollectionView+SensorsData.h */; };
+		76C04806261889E30045429B /* UICollectionView+SensorsData.m in Sources */ = {isa = PBXBuildFile; fileRef = 76C04804261889E30045429B /* UICollectionView+SensorsData.m */; };
 		8F187F83260B3BD000D6DDB9 /* NSObject+SASwizzler.h in Headers */ = {isa = PBXBuildFile; fileRef = 8F187F81260B3BD000D6DDB9 /* NSObject+SASwizzler.h */; };
 		8F187F84260B3BD000D6DDB9 /* NSObject+SASwizzler.m in Sources */ = {isa = PBXBuildFile; fileRef = 8F187F82260B3BD000D6DDB9 /* NSObject+SASwizzler.m */; };
 		8F187F8B260B404600D6DDB9 /* UIViewController+SensorsData.h in Headers */ = {isa = PBXBuildFile; fileRef = 8F187F89260B404600D6DDB9 /* UIViewController+SensorsData.h */; };
@@ -58,6 +60,8 @@
 		76C047F8261874080045429B /* SensorsAnalyticsDelegateProxy.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SensorsAnalyticsDelegateProxy.m; sourceTree = "<group>"; };
 		76C047FD26187DB70045429B /* UIScrollView+SensorsData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIScrollView+SensorsData.h"; sourceTree = "<group>"; };
 		76C047FE26187DB70045429B /* UIScrollView+SensorsData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIScrollView+SensorsData.m"; sourceTree = "<group>"; };
+		76C04803261889E30045429B /* UICollectionView+SensorsData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UICollectionView+SensorsData.h"; sourceTree = "<group>"; };
+		76C04804261889E30045429B /* UICollectionView+SensorsData.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UICollectionView+SensorsData.m"; sourceTree = "<group>"; };
 		8F187F81260B3BD000D6DDB9 /* NSObject+SASwizzler.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+SASwizzler.h"; sourceTree = "<group>"; };
 		8F187F82260B3BD000D6DDB9 /* NSObject+SASwizzler.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+SASwizzler.m"; sourceTree = "<group>"; };
 		8F187F89260B404600D6DDB9 /* UIViewController+SensorsData.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIViewController+SensorsData.h"; sourceTree = "<group>"; };
@@ -122,6 +126,8 @@
 				8FFA3C72260C8963007920D7 /* UIView+SensorsData.m */,
 				7641000D26104EBF009D4DA1 /* UITableView+SensorsData.h */,
 				7641000E26104EBF009D4DA1 /* UITableView+SensorsData.m */,
+				76C04803261889E30045429B /* UICollectionView+SensorsData.h */,
+				76C04804261889E30045429B /* UICollectionView+SensorsData.m */,
 				76C047EF261859F00045429B /* SensorsAnalyticsDynamicDelegate.h */,
 				76C047F0261859F00045429B /* SensorsAnalyticsDynamicDelegate.m */,
 				76C047F7261874080045429B /* SensorsAnalyticsDelegateProxy.h */,
@@ -160,6 +166,7 @@
 				8FFA3C73260C8963007920D7 /* UIView+SensorsData.h in Headers */,
 				8FFA3C6D260C81D6007920D7 /* UIApplication+SensorsData.h in Headers */,
 				8F187F8B260B404600D6DDB9 /* UIViewController+SensorsData.h in Headers */,
+				76C04805261889E30045429B /* UICollectionView+SensorsData.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -268,6 +275,7 @@
 				7641001026104EBF009D4DA1 /* UITableView+SensorsData.m in Sources */,
 				8F187F84260B3BD000D6DDB9 /* NSObject+SASwizzler.m in Sources */,
 				8FFA3C74260C8963007920D7 /* UIView+SensorsData.m in Sources */,
+				76C04806261889E30045429B /* UICollectionView+SensorsData.m in Sources */,
 				76C0480026187DB70045429B /* UIScrollView+SensorsData.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

@@ -13,6 +13,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 +(void)proxyWithTableViewDelegate:(id<UITableViewDelegate>)delegate;
 
++(void)proxyWithCollectionViewDelegate:(id<UICollectionViewDelegate>)delegate;
+
 @end
 
 NS_ASSUME_NONNULL_END
