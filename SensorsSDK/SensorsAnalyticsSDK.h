@@ -22,6 +22,13 @@ NS_ASSUME_NONNULL_BEGIN
  */
 
 +(SensorsAnalyticsSDK *)sharedInstance;
+
+/**
+ 用户登录，设置登录ID
+ @param loginId 用户的登录id
+ */
+-(void)login:(NSString*)loginId;
+
 @end
 
 @interface SensorsAnalyticsSDK (Track)

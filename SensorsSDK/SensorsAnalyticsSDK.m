@@ -15,6 +15,7 @@
 static NSString *const SensorsAnalyticsVersion = @"1.0.0";
 static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_id";
 static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.SensorsAnalytics.id";
+static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
 
 @interface SensorsAnalyticsSDK()
 
@@ -23,6 +24,8 @@ static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.Sensor
 @property(nonatomic)BOOL applicationWillResignActive;
 //是否为被动启动
 @property(nonatomic, getter=_isLaunchedPassively) BOOL launchedPassively;
+//登陆ID
+@property(nonatomic,copy)NSString *loginId;
 
 @end
 
@@ -36,6 +39,11 @@ static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.Sensor
         
         //设置是否被动启动标记
         _launchedPassively = UIApplication.sharedApplication.backgroundTimeRemaining != UIApplicationBackgroundFetchIntervalNever;
+        
+        //从NSUserDefaults中获取登陆ID
+        _loginId = [[NSUserDefaults standardUserDefaults]objectForKey:SensorsAnalyticsLoginId];
+        
+        //建立监听
         [self setupListeners];
     }
     return self;
@@ -208,6 +216,13 @@ static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.Sensor
     }
 }
 
+-(void)login:(NSString *)loginId{
+    self.loginId = loginId;
+    //在本地保存登陆ID
+    [[NSUserDefaults standardUserDefaults]setObject:loginId forKey:SensorsAnalyticsLoginId];
+    [[NSUserDefaults standardUserDefaults]synchronize];
+}
+
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter]removeObserver:self];
@@ -220,7 +235,7 @@ static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.Sensor
 -(void)track:(NSString *)eventName properties:(nullable NSDictionary<NSString *,id>*)properties{
     NSMutableDictionary *event = [NSMutableDictionary dictionary];
     //设置事件的distinct_id用来唯一标识一个用户
-    event[@"distinct_id"] = self.anonymousId;
+    event[@"distinct_id"] = self.loginId? self.loginId:self.anonymousId;
     //设置事件名称
     event[@"event"] = eventName;
     //设置时间戳 单位：豪秒

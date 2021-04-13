@@ -19,6 +19,7 @@
     // Override point for customization after application launch.
     [SensorsAnalyticsSDK sharedInstance];
     [[SensorsAnalyticsSDK sharedInstance] track:@"MyFirstEvent" properties:@{@"testKey":@"testValue"}];
+    [[SensorsAnalyticsSDK sharedInstance] login:@"123456"];
     self.window = [[UIWindow alloc]initWithFrame:UIScreen.mainScreen.bounds];
     ViewController *vc = [[ViewController alloc]init];
     vc.view.backgroundColor = [UIColor whiteColor];
