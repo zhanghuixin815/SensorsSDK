@@ -10,9 +10,11 @@
 #import<Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
 #import "UIView+SensorsData.h"
+#import "SensorsAnalyticsKeychainItem.h"
 
 static NSString *const SensorsAnalyticsVersion = @"1.0.0";
 static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_id";
+static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.SensorsAnalytics.id";
 
 @interface SensorsAnalyticsSDK()
 
@@ -61,8 +63,12 @@ static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_
     if (_anonymousId) {
         return _anonymousId;
     }
-    //从NSUserDefaults中获取设备ID(匿名ID)
+    //方案1:从NSUserDefaults中获取设备ID(匿名ID)
     _anonymousId = [[NSUserDefaults standardUserDefaults] objectForKey:SensorsAnalyticsAnonymousId];
+    
+    //方案2:从钥匙串中获取设备ID(匿名ID)
+    SensorsAnalyticsKeychainItem *item = [[SensorsAnalyticsKeychainItem alloc]initWithService:SensorsAnalyticsKeychainService key:SensorsAnalyticsAnonymousId];
+    _anonymousId = [item value];
     if (_anonymousId) {
         return _anonymousId;
     }
@@ -154,9 +160,19 @@ static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_
 }
 
 -(void)saveAnonymousId:(NSString*)anonymousId{
-    //保存设备ID
+    //方案1:保存设备ID(匿名ID)到 NSUserDefaults 中
     [[NSUserDefaults standardUserDefaults]setObject:anonymousId forKey:SensorsAnalyticsAnonymousId];
     [[NSUserDefaults standardUserDefaults]synchronize];
+    
+    //方案2:保存设备ID(匿名ID)到钥匙串中
+    SensorsAnalyticsKeychainItem *item = [[SensorsAnalyticsKeychainItem alloc]initWithService:SensorsAnalyticsKeychainService key:SensorsAnalyticsAnonymousId];
+    if (anonymousId) {
+        //当设备ID(匿名ID)不为空时，将其保存在钥匙串内
+        [item update:anonymousId];
+    }else {
+        //当设备ID(匿名ID)为空时，将其从钥匙串内删除
+        [item remove];
+    }
 }
 
 -(void)applicationDidEnterBackground:(NSNotification*)notification{
