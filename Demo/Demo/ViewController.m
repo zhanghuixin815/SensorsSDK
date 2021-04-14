@@ -6,6 +6,7 @@
 //
 
 #import "ViewController.h"
+#import <SensorsSDK/SensorsSDK.h>
 
 @interface ViewController ()<UITableViewDelegate,UITableViewDataSource,UICollectionViewDelegate,UICollectionViewDelegateFlowLayout,UICollectionViewDataSource>
 
@@ -96,16 +97,32 @@
 //    [self.view addSubview:_collectionView];
     
     //测试手势采集埋点
-    self.imageView = [[UIImageView alloc]initWithImage:[UIImage addImage]];
-    [self.view addSubview:self.imageView];
-    self.imageView.center = self.view.center;
-    self.imageView.userInteractionEnabled = YES;
-    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
-    [tapGestureRecognizer addTarget:self action:@selector(tapAction:)];
-    [self.imageView addGestureRecognizer:tapGestureRecognizer];
-    UILongPressGestureRecognizer *longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(longPressAction:)];
-    [longPressGestureRecognizer addTarget:self action:@selector(longPressAction:)];
-    [self.imageView addGestureRecognizer:longPressGestureRecognizer];
+//    self.imageView = [[UIImageView alloc]initWithImage:[UIImage addImage]];
+//    [self.view addSubview:self.imageView];
+//    self.imageView.center = self.view.center;
+//    self.imageView.userInteractionEnabled = YES;
+//    UITapGestureRecognizer *tapGestureRecognizer = [[UITapGestureRecognizer alloc]initWithTarget:self action:@selector(tapAction:)];
+//    [tapGestureRecognizer addTarget:self action:@selector(tapAction:)];
+//    [self.imageView addGestureRecognizer:tapGestureRecognizer];
+//    UILongPressGestureRecognizer *longPressGestureRecognizer = [[UILongPressGestureRecognizer alloc]initWithTarget:self action:@selector(longPressAction:)];
+//    [longPressGestureRecognizer addTarget:self action:@selector(longPressAction:)];
+//    [self.imageView addGestureRecognizer:longPressGestureRecognizer];
+    
+    //测试事件时长埋点埋点
+    UIButton *buttonBegin = [UIButton buttonWithType:UIButtonTypeCustom];
+    buttonBegin.backgroundColor = [UIColor redColor];
+    buttonBegin.frame = CGRectMake(0, 150, 100, 50);
+    [buttonBegin setTitle:@"开始" forState:UIControlStateNormal];
+    [buttonBegin addTarget:self action:@selector(buttonClickBegin:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:buttonBegin];
+    
+    UIButton *buttonEnd = [UIButton buttonWithType:UIButtonTypeCustom];
+    buttonEnd.backgroundColor = [UIColor redColor];
+    buttonEnd.frame = CGRectMake(0, 300, 100, 50);
+    [buttonEnd setTitle:@"结束" forState:UIControlStateNormal];
+    [buttonEnd addTarget:self action:@selector(buttonClickEnd:) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:buttonEnd];
+    
     
 }
 
@@ -189,6 +206,14 @@
 
 -(void)longPressAction:(UILongPressGestureRecognizer*)sender{
     NSLog(@"长按手势触发了");
+}
+
+-(void)buttonClickBegin:(id)sender{
+    [[SensorsAnalyticsSDK sharedInstance]trackTimerStart:@"do something"];
+}
+
+-(void)buttonClickEnd:(id)sender{
+    [[SensorsAnalyticsSDK sharedInstance]trackTimerEnd:@"do something" properties:nil];
 }
 
 

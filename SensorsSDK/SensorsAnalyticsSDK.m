@@ -16,6 +16,9 @@ static NSString *const SensorsAnalyticsVersion = @"1.0.0";
 static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_id";
 static NSString *const SensorsAnalyticsKeychainService = @"cn.sensorsdata.SensorsAnalytics.id";
 static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
+static NSString *const SensorsAnalyticsEventBeginKey = @"event_begin";
+static NSString *const SensorsAnalyticsEventDurationKey = @"event_duration";
+static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
 
 @interface SensorsAnalyticsSDK()
 
@@ -26,6 +29,8 @@ static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
 @property(nonatomic, getter=_isLaunchedPassively) BOOL launchedPassively;
 //登陆ID
 @property(nonatomic,copy)NSString *loginId;
+//事件开始发生的时间戳
+@property(nonatomic,strong)NSMutableDictionary<NSString*,NSDictionary*> *trackTimer;
 
 @end
 
@@ -42,6 +47,9 @@ static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
         
         //从NSUserDefaults中获取登陆ID
         _loginId = [[NSUserDefaults standardUserDefaults]objectForKey:SensorsAnalyticsLoginId];
+        
+        //初始化时间戳
+        _trackTimer = [NSMutableDictionary dictionary];
         
         //建立监听
         [self setupListeners];
@@ -85,7 +93,7 @@ static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
     Class cls = NSClassFromString(@"ASIdentifierManager");
     if (cls) {
 #pragma clang diagnostic push
-#pragma clang diagnostic ignored "Wundeclared-selector"
+#pragma clang diagnostic ignored "-Wundeclared-selector"
         //获取ASIdentifierManager的单例对象
         id manager = [cls performSelector:@selector(sharedmanager)];
         SEL selector = NSSelectorFromString(@"isAdvertisingTrackingEnabled");
@@ -223,6 +231,19 @@ static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
     [[NSUserDefaults standardUserDefaults]synchronize];
 }
 
+#pragma mark - Property
+//目前未使用此方法获取当前时间
++(double)currentTime{
+    //获取手机当前时间戳(受用户手动改变时间的影响，不一定准确)
+    return [[NSDate date] timeIntervalSince1970] * 1000;
+}
+
+//目前正在采用此方法获取当前时间
++(double)systemUpTime{
+    //获取手机启动时间戳(不受用户手动改变时间的影响，更加准确)
+    return NSProcessInfo.processInfo.systemUptime * 1000;
+}
+
 - (void)dealloc
 {
     [[NSNotificationCenter defaultCenter]removeObserver:self];
@@ -297,6 +318,87 @@ static NSString *const SensorsAnalyticsLoginId = @"cn.sensorsdata.login_id";
     [eventProperties addEntriesFromDictionary:properties];
     //触发AppClick事件
     [[SensorsAnalyticsSDK sharedInstance]trackAppClickWithView:collectionView properties:eventProperties];
+}
+
+@end
+
+#pragma mark - Timer
+@implementation SensorsAnalyticsSDK (Timer)
+
+- (void)trackTimerStart:(NSString *)event{
+    //记录开时间
+    self.trackTimer[event] = @{SensorsAnalyticsEventBeginKey : @([SensorsAnalyticsSDK systemUpTime])};
+}
+
+- (void)trackTimerEnd:(NSString *)event properties:(NSDictionary *)properties{
+    NSDictionary *eventTimer = self.trackTimer[event];
+    if (!eventTimer) {
+        [self track:event properties:properties];
+    }
+    NSMutableDictionary *p = [NSMutableDictionary dictionaryWithDictionary:properties];
+    //移除
+    [self.trackTimer removeObjectForKey:event];
+    if ([eventTimer[SensorsAnalyticsEventIsPauseKey]boolValue]) {
+        //当事件处于暂停状态时，直接获取已经记录到的时长即可
+        //获取事件时长
+        double eventDuration = [eventTimer[SensorsAnalyticsEventDurationKey] doubleValue];
+        //设置事件时长属性
+        [p setObject:@([[NSString stringWithFormat:@"%.0lf",eventDuration] floatValue]) forKey:@"$event_duration"];
+        
+    }else{
+        //如果时间未处于暂停状态，则需要加上之前暂停状态的时长(如有)
+        //事件开始时间
+        double beginTime = [(NSNumber*)eventTimer[SensorsAnalyticsEventBeginKey] doubleValue];
+        //获取当前时间 -> 获取系统启动时间
+        double currentTime = [SensorsAnalyticsSDK systemUpTime];
+        //计算事件时长
+        double eventDuration = currentTime - beginTime + [eventTimer[SensorsAnalyticsEventDurationKey] doubleValue];
+        //设置事件时长属性
+        [p setObject:@([[NSString stringWithFormat:@"%.0lf",eventDuration] floatValue]) forKey:@"$event_duration"];
+    }
+    //触发事件
+    [self track:event properties:p];
+}
+
+- (void)trackTimerPause:(NSString *)event{
+    NSMutableDictionary *eventTimer = self.trackTimer[event].mutableCopy;
+    //如果没有开始，直接返回
+    if (!eventTimer) {
+        return;
+    }
+    //如果该时间时长统计已经暂停，直接返回，不做任何处理
+    if ([eventTimer[SensorsAnalyticsEventIsPauseKey] boolValue]) {
+        return;
+    }
+    //获取当前系统启动时间
+    double systemUpTime = [SensorsAnalyticsSDK systemUpTime];
+    //获取开始时间
+    double beginTime = [eventTimer[SensorsAnalyticsEventBeginKey] doubleValue];
+    //计算暂停前统计的时长
+    double duration = [eventTimer[SensorsAnalyticsEventDurationKey] doubleValue] + systemUpTime - beginTime;
+    eventTimer[SensorsAnalyticsEventDurationKey] = @(duration);
+    //事件处于暂停状态
+    eventTimer[SensorsAnalyticsEventIsPauseKey] = @(YES);
+    self.trackTimer[event] = eventTimer;
+}
+
+- (void)trackTimerResume:(NSString *)event{
+    NSMutableDictionary *eventTimer = self.trackTimer[event].mutableCopy;
+    //如果没有开始，直接返回
+    if (!eventTimer) {
+        return;
+    }
+    //如果该时间时长统计没有暂停，直接返回，不做任何处理
+    if (![eventTimer[SensorsAnalyticsEventIsPauseKey] boolValue]) {
+        return;
+    }
+    //获取当前系统启动时间
+    double systemUpTime = [SensorsAnalyticsSDK systemUpTime];
+    //重置时间开始时间
+    eventTimer[SensorsAnalyticsEventBeginKey] = @(systemUpTime);
+    //将时间暂停标记设置为NO
+    eventTimer[SensorsAnalyticsEventIsPauseKey] = @(NO);
+    self.trackTimer[event] = eventTimer;
 }
 
 @end
