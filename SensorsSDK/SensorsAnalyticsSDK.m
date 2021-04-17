@@ -11,6 +11,8 @@
 #import <UIKit/UIKit.h>
 #import "UIView+SensorsData.h"
 #import "SensorsAnalyticsKeychainItem.h"
+#import "SensorsAnalyticsFileStore.h"
+#import "SensorsAnalyticsDatabase.h"
 
 static NSString *const SensorsAnalyticsVersion = @"1.0.0";
 static NSString *const SensorsAnalyticsAnonymousId = @"cn.sensorsdata.anonymous_id";
@@ -31,6 +33,12 @@ static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
 @property(nonatomic,copy)NSString *loginId;
 //事件开始发生的时间戳
 @property(nonatomic,strong)NSMutableDictionary<NSString*,NSDictionary*> *trackTimer;
+//保存进入后台时未暂停的事件名称
+@property(nonatomic,strong)NSMutableArray<NSString*> *enterbackgroundTrackTimerEvents;
+//文件缓存事件数据对象
+@property(nonatomic,strong)SensorsAnalyticsFileStore *fileStore;
+//数据库存储对象
+@property(nonatomic,strong)SensorsAnalyticsDatabase *database;
 
 @end
 
@@ -50,6 +58,15 @@ static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
         
         //初始化时间戳
         _trackTimer = [NSMutableDictionary dictionary];
+        
+        //初始化保存进入后台时未暂停的事件名称的数组
+        _enterbackgroundTrackTimerEvents = [NSMutableArray array];
+        
+        //初始化文件缓存事件数据对象
+        _fileStore = [[SensorsAnalyticsFileStore alloc]init];
+        
+        //初始化SensorsAnalyticsDatabase类的对象，并使用默认路径
+        _database = [[SensorsAnalyticsDatabase alloc]init];
         
         //建立监听
         [self setupListeners];
@@ -193,9 +210,18 @@ static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
 
 -(void)applicationDidEnterBackground:(NSNotification*)notification{
     NSLog(@"Application Did Enter Background!");
+    //还原标识位
     self.applicationWillResignActive = NO;
     //触发 $AppEnd 事件
-    [self track:@"$AppEnd" properties:nil];
+//    [self track:@"$AppEnd" properties:nil];
+    [self trackTimerEnd:@"$AppEnd" properties:nil];
+    //暂停所有事件的时长统计
+    [self.trackTimer enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSDictionary * _Nonnull obj, BOOL * _Nonnull stop) {
+            if (![obj[SensorsAnalyticsEventIsPauseKey] boolValue]) {
+                [self.enterbackgroundTrackTimerEvents addObject:key];
+                [self trackTimerPause:key];
+            }
+    }];
 }
 
 -(void)applicationDidBecomeActive:(NSNotification*)notification{
@@ -205,9 +231,19 @@ static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
         self.applicationWillResignActive = NO;
         return;
     }
+    
+    //将被动启动标记位设置为NO，正常记录事件
     self.launchedPassively = NO;
     //触发 $AppActive 事件
-    [self track:@"$AppStart" properties:nil];
+    [self track:@"$AppActive" properties:nil];
+    //恢复所有事件的时长统计
+    for (NSString *event in self.enterbackgroundTrackTimerEvents) {
+        [self trackTimerResume:event];
+    }
+    //都恢复完成之后清空这个数组
+    [self.enterbackgroundTrackTimerEvents removeAllObjects];
+    //开始$AppEnd事件计时,统计app使用时长
+    [self trackTimerStart:@"$AppEnd"];
 }
 
 -(void)applicationWillResignActive:(NSNotification*)notification{
@@ -271,7 +307,12 @@ static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
         eventProperties[@"app_state"] = @"background";
     }
     event[@"properties"] = eventProperties;
+    //将事件的内容打印出来
     [self printEvent:event];
+    //将事件存储到文件里
+//    [self.fileStore saveEvent:event];
+    //将事件存储到数据库里面
+    [self.database insertEvent:event];
 }
 
 -(void)trackAppClickWithView:(UIView *)view properties:(nullable NSDictionary<NSString *,id>*)properties{
