@@ -10,7 +10,7 @@
 //默认文件名
 static NSString *const SensorsAnalyticsDefaultFileName = @"SensorsAnalyticsData.plist";
 //队列唯一标识
-static NSString *const SensorsAnalyticsSerialQueueLabel = @"cn.sensorsdata.serialQueue";
+static NSString *const SensorsAnalyticsSerialQueueLabel = @"cn.sensorsdata.fileStoreSerialQueue";
 
 @interface SensorsAnalyticsFileStore()
 

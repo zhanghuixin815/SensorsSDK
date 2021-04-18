@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 //sqlite3数据库
 @property(nonatomic)sqlite3 *database;
 //本地事件存储总量
-@property(nonatomic)NSInteger eventCount;
+@property(nonatomic)NSUInteger eventCount;
 
 /**
  初始化方法

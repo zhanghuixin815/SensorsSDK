@@ -8,7 +8,7 @@
 #import "SensorsAnalyticsDatabase.h"
 
 static NSString *const SensorsAnalyticsDefaultDatabaseName = @"SensorsAnalyticsDatabase.splite";
-static NSString *const SensorsAnalyticsSerialQueueLabel = @"cn.sensorsdata.serialQueue";
+static NSString *const SensorsAnalyticsSerialQueueLabel = @"cn.sensorsdata.databaseSerialQueue";
 
 @interface SensorsAnalyticsDatabase()
 

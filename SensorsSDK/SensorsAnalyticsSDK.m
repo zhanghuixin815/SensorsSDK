@@ -23,6 +23,8 @@ static NSString *const SensorsAnalyticsEventBeginKey = @"event_begin";
 static NSString *const SensorsAnalyticsEventDurationKey = @"event_duration";
 static NSString *const SensorsAnalyticsEventIsPauseKey = @"is_pause";
 static NSUInteger const SensorsAnalyticsDefaultFlushEventCount = 50;
+//队列唯一标识
+static NSString *const SensorsAnalyticsSerialQueueLabel = @"cn.sensorsdata.serialQueue";
 
 @interface SensorsAnalyticsSDK()
 
@@ -43,6 +45,10 @@ static NSUInteger const SensorsAnalyticsDefaultFlushEventCount = 50;
 @property(nonatomic,strong)SensorsAnalyticsDatabase *database;
 //发送网络请求对象
 @property(nonatomic,strong)SensorsAnalyticsNetwork *network;
+//事件队列
+@property(nonatomic,strong)dispatch_queue_t serialQueue;
+//定时上传事件的定时器
+@property(nonatomic,strong)NSTimer *flushTimer;
 
 @end
 
@@ -66,17 +72,26 @@ static NSUInteger const SensorsAnalyticsDefaultFlushEventCount = 50;
         //初始化保存进入后台时未暂停的事件名称的数组
         _enterbackgroundTrackTimerEvents = [NSMutableArray array];
         
-        //初始化文件缓存事件数据对象
+        //初始化 SensorsAnalyticsFileStore 类的对象，并使用默认路径
         _fileStore = [[SensorsAnalyticsFileStore alloc]init];
         
-        //初始化SensorsAnalyticsDatabase类的对象，并使用默认路径
+        //初始化 SensorsAnalyticsDatabase 类的对象，并使用默认路径
         _database = [[SensorsAnalyticsDatabase alloc]init];
         
-        //此处需要配置一个可用的serverURL
+        //初始化 SensorsAnalyticsNetwork 类的对象，并传入URL
         _network = [[SensorsAnalyticsNetwork alloc]initWithServerURL:[NSURL URLWithString:serverURL]];
+        
+        //创建队列标识符和串行队列
+        NSString *queueLabel = [NSString stringWithFormat:@"%@.%@.%p",SensorsAnalyticsSerialQueueLabel,self.class,self];
+        _serialQueue = dispatch_queue_create([queueLabel UTF8String], DISPATCH_QUEUE_SERIAL);
+        
+        _flushBulkSize = 100;
+        _flushInterval = 15;
         
         //建立监听
         [self setupListeners];
+        //开启定时器自动上传事件数据
+        [self startFlushTimer];
     }
     return self;
 }
@@ -223,6 +238,24 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
     //触发 $AppEnd 事件
 //    [self track:@"$AppEnd" properties:nil];
     [self trackTimerEnd:@"$AppEnd" properties:nil];
+    UIApplication *application = UIApplication.sharedApplication;
+    //初始化标识符
+    __block UIBackgroundTaskIdentifier backgroundTaskIdentifier = UIBackgroundTaskInvalid;
+    //结束后台任务
+    void(^endBackgroundTask)(void) = ^(){
+        [application endBackgroundTask:backgroundTaskIdentifier];
+        backgroundTaskIdentifier = UIBackgroundTaskInvalid;
+    };
+    //标记长时间运行的后台任务
+    backgroundTaskIdentifier = [application beginBackgroundTaskWithExpirationHandler:^{
+        endBackgroundTask();
+    }];
+    dispatch_async(self.serialQueue, ^{
+        //发送数据
+        [self flushByEventCount:SensorsAnalyticsDefaultFlushEventCount background:YES];
+        //结束后台任务
+        endBackgroundTask();
+    });
     //暂停所有事件的时长统计
     [self.trackTimer enumerateKeysAndObjectsUsingBlock:^(NSString * _Nonnull key, NSDictionary * _Nonnull obj, BOOL * _Nonnull stop) {
             if (![obj[SensorsAnalyticsEventIsPauseKey] boolValue]) {
@@ -230,6 +263,8 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
                 [self trackTimerPause:key];
             }
     }];
+    //进入后台时候要停掉自动上传的定时器
+    [self stopFlushTimer];
 }
 
 -(void)applicationDidBecomeActive:(NSNotification*)notification{
@@ -252,6 +287,8 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
     [self.enterbackgroundTrackTimerEvents removeAllObjects];
     //开始$AppEnd事件计时,统计app使用时长
     [self trackTimerStart:@"$AppEnd"];
+    //进入前台后要及时开启定时器
+    [self startFlushTimer];
 }
 
 -(void)applicationWillResignActive:(NSNotification*)notification{
@@ -276,11 +313,23 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
 }
 
 - (void)flush{
-    //默认一次向服务器发送50条埋点数据
-    [self flushByEventCount:SensorsAnalyticsDefaultFlushEventCount];
+    //保证先后顺序性，将操作放入队列
+    dispatch_async(self.serialQueue, ^{
+        //默认一次向服务器发送50条埋点数据
+        [self flushByEventCount:SensorsAnalyticsDefaultFlushEventCount background:NO];
+    });
 }
 
--(void)flushByEventCount:(NSUInteger)count{
+-(void)flushByEventCount:(NSUInteger)count background:(BOOL)background{
+    if (background) {
+        __block isContinue = YES;
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            isContinue = UIApplication.sharedApplication.backgroundTimeRemaining >=30;
+        });
+        if (!isContinue) {
+            return;
+        }
+    }
     //获取本地数据
     NSArray<NSString*> *events = [self.database selectEventsForCount:count];
     //当本地数据为0或者上传失败时，直接返回，退出递归调用
@@ -292,7 +341,7 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
         return;
     }
     //递归上传本地数据
-    [self flushByEventCount:count];
+    [self flushByEventCount:count background:background];
 }
 
 #pragma mark - Property
@@ -312,6 +361,36 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
 {
     [[NSNotificationCenter defaultCenter]removeObserver:self];
 }
+
+#pragma mark - FlushTimer
+//开启上传数据的定时器
+-(void)startFlushTimer{
+    if (self.flushTimer) {
+        return;
+    }
+    NSTimeInterval interval = self.flushInterval < 5 ? 5 : self.flushInterval;
+    self.flushTimer = [NSTimer timerWithTimeInterval:interval target:self selector:@selector(flush) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop]addTimer:self.flushTimer forMode:NSRunLoopCommonModes];
+}
+
+//关闭上传数据的定时器
+-(void)stopFlushTimer{
+    [self.flushTimer invalidate];
+    self.flushTimer = nil;
+}
+
+-(void)setFlushInterval:(NSUInteger)flushInterval{
+    if (_flushInterval != flushInterval) {
+        _flushInterval = flushInterval;
+        //上传本地缓存的所有事件数据
+        [self flush];
+        //关闭定时器
+        [self stopFlushTimer];
+        //开启定时器
+        [self startFlushTimer];
+    }
+}
+
 
 @end
 
@@ -337,10 +416,17 @@ static SensorsAnalyticsSDK *sharedInstance = nil;
     event[@"properties"] = eventProperties;
     //将事件的内容打印出来
     [self printEvent:event];
-    //将事件存储到文件里
-    [self.fileStore saveEvent:event];
-    //将事件存储到数据库里面
-    [self.database insertEvent:event];
+    //为了保证事件的先后顺序性，将操作放到队列里面
+    dispatch_async(self.serialQueue, ^{
+        //将事件存储到文件里
+        //[self.fileStore saveEvent:event];
+        //将事件存储到数据库里面
+        [self.database insertEvent:event];
+    });
+    //当本地缓存的事件条数超过100条，自动触发上传
+    if (self.database.eventCount >= self.flushBulkSize) {
+        [self flush];
+    }
 }
 
 -(void)trackAppClickWithView:(UIView *)view properties:(nullable NSDictionary<NSString *,id>*)properties{

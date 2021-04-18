@@ -14,6 +14,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 //设备ID(匿名ID)
 @property(nonatomic,copy)NSString *anonymousId;
+//当本地缓存的事件达到最大条数时，上传数据(默认为100条)
+@property(nonatomic)NSUInteger flushBulkSize;
+//两次数据发送的时间间隔，单位为秒
+@property(nonatomic)NSUInteger flushInterval;
 
 /**
  禁用init方法
