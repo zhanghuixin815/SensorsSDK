@@ -54,7 +54,7 @@ static NSString *const SensorsDataSignalExceptionHandlerUserInfo = @"SignalExcep
             //注册信号处理
             int err = sigaction(signals[i], &sig, NULL);
             if (err) {
-                NSLog(@"Errored whilr trying to setup sigaction fro signal %d",signals[i]);
+                NSLog(@"Errored while trying to setup sigaction fro signal %d",signals[i]);
             }
         }
         

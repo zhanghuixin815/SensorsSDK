@@ -44,7 +44,7 @@
         [invocation invokeWithTarget:self];
     }else if (invocation.selector == @selector(collectionView:didSelectItemAtIndexPath:)) {
         //将方法修改为进行数据采集的方法，即本类中实现的方法：sensorsdata_collectionView:didSelectRowAtIndexPath:
-        invocation.selector = @selector(sensorsdata_collectionView:didSelectRowAtIndexPath:);
+        invocation.selector = @selector(sensorsdata_collectionView:didSelectItemAtIndexPath:);
         //执行数据采集的相关方法
         [invocation invokeWithTarget:self];
     }
@@ -53,7 +53,7 @@
     [[SensorsAnalyticsSDK sharedInstance]trackAppClickWithTableView:tableView didSelectRowAtIndexPath:indexPath properties:nil];
 }
 
--(void)sensorsdata_collectionView:(UICollectionView *)collectionView didSelectRowAtIndexPath:(NSIndexPath *)indexPath{
+-(void)sensorsdata_collectionView:(UICollectionView *)collectionView didSelectItemAtIndexPath:(NSIndexPath *)indexPath{
     [[SensorsAnalyticsSDK sharedInstance]trackAppClickWithCollectionView:collectionView didSelectItemAtIndexPath:indexPath properties:nil];
 }
 @end
